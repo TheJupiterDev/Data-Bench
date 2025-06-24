@@ -1,0 +1,7 @@
+template clear_slot {
+    with slot:raw {
+        execute if block ~ ~ ~ barrel{Items:[{Slot:<% slot %>}]} run summon item ~ ~1 ~ {Item:{"id": "minecraft:crafting_table"}}
+        execute if block ~ ~ ~ barrel{Items:[{Slot:<% slot %>}]} run data modify entity @e[type=item,sort=nearest,limit=1] Item set from block ~ ~ ~ Items[{Slot:<% slot %>}]
+        data remove block ~ ~ ~ Items[{Slot:<% slot %>}]
+    }
+}

@@ -1,0 +1,360 @@
+import ./macros/increment.mcbt
+import ./macros/clear_slot.mcbt
+import ./macros/controller.mcbt
+
+function load minecraft:load{
+    # MC-Build internal stuff
+    scoreboard objectives add mcb.internal dummy
+
+    tellraw @a {"text":"Databench v1.0 - Loaded!",bold:true,color:"green"}
+
+    scoreboard objectives add databench.craft dummy
+    scoreboard objectives add databench.success dummy
+    scoreboard objectives add databench.items dummy
+    scoreboard objectives add databench.result dummy
+}
+
+function tick minecraft:tick{
+    execute as @e[tag=databench.databench,type=armor_stand] at @s run function databench
+    execute as @e[tag=databench.databench,type=item_display] at @s run function itemdisplay_controller
+}
+
+##############
+# MAIN LOGIC #
+##############
+
+function itemdisplay_controller {
+    
+    execute unless block ~ ~ ~ air store result score @s databench.result run execute at @n[tag=databench.databench,type=armor_stand] run block find_pos{
+        execute if block ~1 ~ ~ air run return 1
+        execute if block ~ ~1 ~ air run return 2
+        execute if block ~ ~ ~1 air run return 3
+        execute if block ~-1 ~ ~ air run return 4
+        execute if block ~ ~-1 ~ air run return 5
+        execute if block ~ ~ ~-1 air run return 6
+    }
+    execute at @n[tag=databench.databench,type=armor_stand] run block {
+        execute if score @s databench.result matches 1 run block {
+            controller 1f,0.5f,0f ~1 ~ ~
+            }
+        execute if score @s databench.result matches 2 run block {
+            controller 0f,-0.5f,0f ~ ~1 ~ 
+            }
+        execute if score @s databench.result matches 3 run block {
+            controller 0f,0.5f,1f ~ ~ ~1 
+            }
+        execute if score @s databench.result matches 4 run block {
+            controller -1f,0.5f,0f ~-1 ~ ~
+            }
+        execute if score @s databench.result matches 5 run block {
+            controller 0f,1.5f,0f ~ ~-1 ~
+            }
+        execute if score @s databench.result matches 6 run block {
+            controller 0f,0.5f,-1f ~ ~ ~-1
+            }
+    }
+    scoreboard players reset @s databench.result
+}
+
+function databench {
+    # Ran every tick for each DataBench
+
+    # Handle Break
+    execute unless block ~ ~ ~ barrel run function cleanup
+    stopsound @e[type=player,distance=..6] * minecraft:block.barrel.open
+    stopsound @e[type=player,distance=..6] * minecraft:block.barrel.close
+
+    # Handle (gross) Hoppers
+    execute as @s run function check_hopper
+
+    # Get Recipe Ready
+    scoreboard players set @s databench.success 0
+    scoreboard players set @s databench.items 0
+
+    function increment
+
+    # Check Recipes
+    # function example_craft.input
+
+    execute if score @s databench.success matches 0 run function clear_slots
+}
+
+function increment {
+    increment_item_num 2b
+    increment_item_num 3b
+    increment_item_num 4b
+    increment_item_num 11b
+    increment_item_num 12b
+    increment_item_num 13b
+    increment_item_num 20b
+    increment_item_num 21b
+    increment_item_num 22b
+}
+
+function clear_slots {
+    scoreboard players reset @s databench.craft
+    execute if block ~ ~ ~ barrel{Items:[{Slot:16b}]} unless block ~ ~ ~ barrel{Items:[{Slot:16b,components:{"minecraft:custom_data":{databench.output_item:1b}}}]} run summon item ~ ~1 ~ {Item:{"id": "minecraft:crafting_table"}}
+    execute if block ~ ~ ~ barrel{Items:[{Slot:16b}]} unless block ~ ~ ~ barrel{Items:[{Slot:16b,components:{"minecraft:custom_data":{databench.output_item:1b}}}]} run data modify entity @e[type=item,sort=nearest,limit=1] Item set from block ~ ~ ~ Items[{Slot:16b}]
+    data remove block ~ ~ ~ Items[{Slot:16b}]
+
+
+    clear_slot 0b
+    clear_slot 1b
+    clear_slot 5b
+    clear_slot 6b
+    clear_slot 7b
+    clear_slot 8b
+    clear_slot 9b
+    clear_slot 10b
+    clear_slot 14b
+    clear_slot 15b
+    clear_slot 17b
+    clear_slot 18b
+    clear_slot 19b
+    clear_slot 23b
+    clear_slot 24b
+    clear_slot 25b
+    clear_slot 26b
+
+}
+
+function check_hopper {
+    execute if block ~ ~-1 ~ hopper[enabled=true] run function replace_hopper with block ~ ~-1 ~
+    execute if block ~1 ~ ~ hopper[enabled=true] run function replace_hopper with block ~1 ~ ~
+    execute if block ~ ~ ~1 hopper[enabled=true] run function replace_hopper with block ~ ~ ~1
+    execute if block ~-1 ~ ~ hopper[enabled=true] run function replace_hopper with block ~-1 ~ ~
+    execute if block ~ ~ ~-1 hopper[enabled=true] run function replace_hopper with block ~ ~ ~-1
+    execute if block ~ ~1 ~ hopper[enabled=true] run function replace_hopper with block ~ ~1 ~
+
+    execute as @e[type=hopper_minecart,dy=-1] run block {
+        summon item ~ ~ ~ {Item:{id:"hopper_minecart"}}
+        kill @s
+    }
+}
+
+function replace_hopper {
+    title @p actionbar {text:"You cannot place hoppers here!",color:"red"}
+    setblock ~ ~ ~ air destroy
+}
+
+function cleanup {
+    kill @e[type=item,distance=..1,nbt={Item:{id:"minecraft:barrel"}},limit=1,sort=nearest]
+    kill @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{crafterlib.output_item:1b}}}}]
+    loot spawn ~ ~ ~ loot jupdev.databench:databench
+    kill @s
+}
+
+function clear {
+    # Ran after a completed craft.
+    item modify block ~ ~ ~ container.2 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.3 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.4 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.11 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.12 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.13 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.20 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.21 jupdev.databench:remove_one
+    item modify block ~ ~ ~ container.22 jupdev.databench:remove_one
+
+    execute as @p run block {
+        execute if items entity @s player.cursor *[custom_data={databench.output_item:1b}] run item modify entity @s player.cursor jupdev.databench:clear_comp
+        REPEAT (0, 35) as i {
+            execute if items entity @s container.<%i%> *[custom_data={databench.output_item:1b}] run item modify entity @s container.<%i%> jupdev.databench:clear_comp
+        }
+    }
+    scoreboard players reset @s databench.craft
+}
+
+function placed {
+    advancement revoke @s only jupdev.databench:placed_databench
+    execute as @e[type=item_display,nbt={Tags:["databench.databench","databench.databenchblock","databench.block"]},distance=..10] at @s run block setblock { with entity @s
+        playsound block.wood.place block @a ~ ~ ~ 10
+        # Places the Barrel
+        setblock ~ ~ ~ barrel[facing=up]{CustomName:{translate:"block.databench.databench.gui",font:"databench:gui",color:"white",with:[{translate:"block.databench.databench",color:"#3F3F3F",font:"minecraft:default"}]}} keep
+        summon armor_stand ~ ~ ~ {NoGravity:1b,Silent:1b,Invulnerable:1b,Small:1b,Marker:1b,Invisible:1b,NoBasePlate:1b,Tags:["databench.databench","databench.databenchblock","databench.block"]}
+    }
+}
+
+##############
+# JSON FILES #
+##############
+
+# Databench Loot Tables
+loot_table databench {
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:bat_spawn_egg",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:item_name": {
+                  "italic": false,
+                  "text": "Databench"
+                },
+                "minecraft:item_model": "databench:databench",
+                "minecraft:entity_data": {
+                  "id": "minecraft:item_display",
+                  "Rotation": [
+                    -180,
+                    0
+                  ],
+                  "Tags": [
+                    "databench.databench",
+                    "databench.databenchblock",
+                    "databench.block"
+                  ],
+                  "interpolation_duration":0,"teleport_duration":0,
+                  "transformation": {
+                    "left_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "right_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "translation": [
+                      0,
+                      0.5,
+                      0
+                    ],
+                    "scale": [
+                      1.001,
+                      1.001,
+                      1.001
+                    ]
+                  },
+                  "item": {
+                    "id": "minecraft:flint",
+                    "count": 1,
+                    "components": {
+                      "minecraft:item_model": "databench:databench"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+# Databench Item Modifiers
+item_modifier remove_one {
+    "function": "minecraft:set_count",
+    "count": -1,
+    "add": true,
+    "conditions": []
+}
+
+item_modifier clear_comp {
+    "function": "minecraft:set_components",
+    "components": {"!custom_data": {}},
+    "conditions": []
+}
+
+# Databench Recipes
+recipe databench {
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "www",
+        "wlw",
+        "www"
+    ],
+    "key": {
+        "w": "#minecraft:planks",
+        "l": "#minecraft:logs"
+    },
+    "result": {
+    "id": "minecraft:bat_spawn_egg",
+    "components": {
+      "minecraft:item_name": {
+        "italic": 0,
+        "text": "CrafterLib Crafter"
+      },
+      "minecraft:item_model": "jupdev.databench:databench",
+      "minecraft:entity_data": {
+        "id": "minecraft:item_display",
+        "Rotation": [
+          -180,
+          0
+        ],
+        "Tags": [
+          "databench.databench",
+          "databench.databenchblock",
+          "databench.block"
+        ],
+        "brightness": {
+          "sky": 15,
+          "block": 0
+        },
+        "transformation": {
+          "left_rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "right_rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "translation": [
+            0,
+            0.5,
+            0
+          ],
+          "scale": [
+            1.001,
+            1.001,
+            1.001
+          ]
+        },
+        "item": {
+          "id": "minecraft:flint",
+          "count": 1,
+          "components": {
+            "minecraft:item_model": "jupdev.databench:databench"
+          }
+        }
+      }
+    }
+  }
+}
+
+# Databench Advancements
+advancement placed_databench {
+    "criteria": {
+        "requitement": {
+            "trigger": "minecraft:item_used_on_block",
+            "conditions": {
+                "location": [
+                    {
+                        "condition": "minecraft:match_tool",
+                        "predicate": {
+                            "items": [
+                                "minecraft:bat_spawn_egg"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "rewards": {
+        "function": "jupdev.databench:placed"
+    }
+}

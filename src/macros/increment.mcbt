@@ -1,0 +1,5 @@
+template increment_item_num {
+    with slot:raw {
+        execute if data block ~ ~ ~ Items[{Slot:<% slot %>}] run scoreboard players add @s databench.items 1
+    }
+}
