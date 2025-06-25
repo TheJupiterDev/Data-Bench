@@ -1,8 +1,7 @@
 import ./macros/increment.mcbt
 import ./macros/clear_slot.mcbt
-import ./macros/controller.mcbt
 
-function load minecraft:load{
+function init minecraft:load{
     # MC-Build internal stuff
     scoreboard objectives add mcb.internal dummy
 
@@ -14,47 +13,54 @@ function load minecraft:load{
     scoreboard objectives add databench.result dummy
 }
 
-function tick minecraft:tick{
-    execute as @e[tag=databench.databench,type=armor_stand] at @s run function databench
-    execute as @e[tag=databench.databench,type=item_display] at @s run function itemdisplay_controller
+function main minecraft:tick{
+    execute as @e[tag=databench.databench,type=item_display] at @s run function databench
 }
 
 ##############
 # MAIN LOGIC #
 ##############
 
-function itemdisplay_controller {
-    
-    execute unless block ~ ~ ~ air store result score @s databench.result run execute at @n[tag=databench.databench,type=armor_stand] run block find_pos{
-        execute if block ~1 ~ ~ air run return 1
-        execute if block ~ ~1 ~ air run return 2
-        execute if block ~ ~ ~1 air run return 3
-        execute if block ~-1 ~ ~ air run return 4
-        execute if block ~ ~-1 ~ air run return 5
-        execute if block ~ ~ ~-1 air run return 6
-    }
-    execute at @n[tag=databench.databench,type=armor_stand] run block {
-        execute if score @s databench.result matches 1 run block {
-            controller 1f,0.5f,0f ~1 ~ ~
-            }
-        execute if score @s databench.result matches 2 run block {
-            controller 0f,-0.5f,0f ~ ~1 ~ 
-            }
-        execute if score @s databench.result matches 3 run block {
-            controller 0f,0.5f,1f ~ ~ ~1 
-            }
-        execute if score @s databench.result matches 4 run block {
-            controller -1f,0.5f,0f ~-1 ~ ~
-            }
-        execute if score @s databench.result matches 5 run block {
-            controller 0f,1.5f,0f ~ ~-1 ~
-            }
-        execute if score @s databench.result matches 6 run block {
-            controller 0f,0.5f,-1f ~ ~ ~-1
-            }
-    }
-    scoreboard players reset @s databench.result
-}
+# function itemdisplay_controller {
+#    scoreboard players reset @s databench.result
+#    execute unless block ~ ~ ~ air run \
+#    execute if score @s databench.id1 = @n[tag=databench.databench,type=item_display] databench.id1 \
+#    store result score @s databench.result run block find_pos{
+#        execute if block ~1 ~ ~ air run return 1
+#        execute if block ~ ~1 ~ air run return 2
+#        execute if block ~ ~ ~1 air run return 3
+#        execute if block ~-1 ~ ~ air run return 4
+#        execute if block ~ ~-1 ~ air run return 5
+#        execute if block ~ ~ ~-1 air run return 6
+#    }
+#    execute at @s if score @s databench.id1 = @n[tag=databench.databench,type=item_display] databench.id1 run block{
+#        execute at @s if score @s databench.result matches 1 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~1 ~ ~
+#        }
+#        execute at @s if score @s databench.result matches 2 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~ ~1 ~
+#        }
+#        execute at @s if score @s databench.result matches 3 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,1f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~ ~ ~1
+#        }
+#        execute at @s if score @s databench.result matches 4 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~-1 ~ ~
+#        }
+#        execute at @s if score @s databench.result matches 5 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,1.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~ ~-1 ~
+#        }
+#        execute at @s if score @s databench.result matches 6 run block {
+#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,-1f],scale:[1.001f,1.001f,1.001f]}}
+#            tp @s ~ ~ ~-1
+#        }
+#    }
+# 
+# }
 
 function databench {
     # Ran every tick for each DataBench
@@ -167,11 +173,10 @@ function clear {
 
 function placed {
     advancement revoke @s only jupdev.databench:placed_databench
-    execute as @e[type=item_display,nbt={Tags:["databench.databench","databench.databenchblock","databench.block"]},distance=..10] at @s run block setblock { with entity @s
+    execute as @e[type=item_display,nbt={Tags:["databench.databench","databench.databenchblock","databench.block"]},distance=..10] at @s run block setblock {
         playsound block.wood.place block @a ~ ~ ~ 10
         # Places the Barrel
         setblock ~ ~ ~ barrel[facing=up]{CustomName:{translate:"block.databench.databench.gui",font:"databench:gui",color:"white",with:[{translate:"block.databench.databench",color:"#3F3F3F",font:"minecraft:default"}]}} keep
-        summon armor_stand ~ ~ ~ {NoGravity:1b,Silent:1b,Invulnerable:1b,Small:1b,Marker:1b,Invisible:1b,NoBasePlate:1b,Tags:["databench.databench","databench.databenchblock","databench.block"]}
     }
 }
 
