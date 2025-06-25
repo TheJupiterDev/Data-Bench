@@ -11,60 +11,54 @@ function init minecraft:load{
     scoreboard objectives add databench.success dummy
     scoreboard objectives add databench.items dummy
     scoreboard objectives add databench.result dummy
+    scoreboard objectives add databench.ID dummy
 }
 
 function main minecraft:tick{
-    execute as @e[tag=databench.databench,type=item_display] at @s run function databench
+    execute as @e[tag=databench.marker,type=marker] at @s run function databench
 }
 
 ##############
 # MAIN LOGIC #
 ##############
 
-# function itemdisplay_controller {
-#    scoreboard players reset @s databench.result
-#    execute unless block ~ ~ ~ air run \
-#    execute if score @s databench.id1 = @n[tag=databench.databench,type=item_display] databench.id1 \
-#    store result score @s databench.result run block find_pos{
-#        execute if block ~1 ~ ~ air run return 1
-#        execute if block ~ ~1 ~ air run return 2
-#        execute if block ~ ~ ~1 air run return 3
-#        execute if block ~-1 ~ ~ air run return 4
-#        execute if block ~ ~-1 ~ air run return 5
-#        execute if block ~ ~ ~-1 air run return 6
-#    }
-#    execute at @s if score @s databench.id1 = @n[tag=databench.databench,type=item_display] databench.id1 run block{
-#        execute at @s if score @s databench.result matches 1 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~1 ~ ~
-#        }
-#        execute at @s if score @s databench.result matches 2 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~ ~1 ~
-#        }
-#        execute at @s if score @s databench.result matches 3 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,1f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~ ~ ~1
-#        }
-#        execute at @s if score @s databench.result matches 4 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~-1 ~ ~
-#        }
-#        execute at @s if score @s databench.result matches 5 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,1.5f,0f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~ ~-1 ~
-#        }
-#        execute at @s if score @s databench.result matches 6 run block {
-#            data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,-1f],scale:[1.001f,1.001f,1.001f]}}
-#            tp @s ~ ~ ~-1
-#        }
-#    }
-# 
-# }
+function handle_lighting {
+  execute store result score @s databench.result run block find_pos{
+      execute if block ~1 ~ ~ air run return 1
+      execute if block ~ ~1 ~ air run return 2
+      execute if block ~ ~ ~1 air run return 3
+      execute if block ~-1 ~ ~ air run return 4
+      execute if block ~ ~-1 ~ air run return 5
+      execute if block ~ ~ ~-1 air run return 6
+  }
+  execute if score @s databench.result matches 1 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~1 ~ ~
+  }
+  execute if score @s databench.result matches 2 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,-0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~ ~1 ~
+  }
+  execute if score @s databench.result matches 3 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,1f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~ ~ ~1
+  }
+  execute if score @s databench.result matches 4 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[-1f,0.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~-1 ~ ~
+  }
+  execute if score @s databench.result matches 5 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,1.5f,0f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~ ~-1 ~
+  }
+  execute if score @s databench.result matches 6 run block {
+      data merge entity @s {transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0.5f,-1f],scale:[1.001f,1.001f,1.001f]}}
+      tp @s ~ ~ ~-1
+  }
+}
 
 function databench {
     # Ran every tick for each DataBench
-
     # Handle Break
     execute unless block ~ ~ ~ barrel run function cleanup
     stopsound @e[type=player,distance=..6] * minecraft:block.barrel.open
@@ -72,6 +66,10 @@ function databench {
 
     # Handle (gross) Hoppers
     execute as @s run function check_hopper
+
+    scoreboard players operation #this databench.ID = @s databench.ID
+    # Handle Lighting
+    execute at @s as @e[predicate=jupdev.databench:match_id,type=item_display] run function handle_lighting
 
     # Get Recipe Ready
     scoreboard players set @s databench.success 0
@@ -144,6 +142,9 @@ function replace_hopper {
 }
 
 function cleanup {
+    # Add killing of marker
+    scoreboard players operation #this databench.ID = @s databench.ID
+    execute as @e[predicate=jupdev.databench:match_id] run kill @s
     kill @e[type=item,distance=..1,nbt={Item:{id:"minecraft:barrel"}},limit=1,sort=nearest]
     kill @e[type=item,nbt={Item:{components:{"minecraft:custom_data":{crafterlib.output_item:1b}}}}]
     loot spawn ~ ~ ~ loot jupdev.databench:databench
@@ -173,10 +174,14 @@ function clear {
 
 function placed {
     advancement revoke @s only jupdev.databench:placed_databench
-    execute as @e[type=item_display,nbt={Tags:["databench.databench","databench.databenchblock","databench.block"]},distance=..10] at @s run block setblock {
+    execute as @e[type=item_display,nbt={Tags:["databench.databench","databench.databenchblock","databench.block"]},distance=..10] unless entity @s[scores={databench.ID=..2147483647}] at @s run block setblock {
+        scoreboard players operation @s databench.ID = .max databench.ID
+        summon marker ~ ~ ~ {NoGravity:1b,Silent:1b,Tags:["databench.marker"]}
+        scoreboard players operation @n[type=marker,nbt={Tags:["databench.marker"]}] databench.ID = .max databench.ID
         playsound block.wood.place block @a ~ ~ ~ 10
         # Places the Barrel
         setblock ~ ~ ~ barrel[facing=up]{CustomName:{translate:"block.databench.databench.gui",font:"databench:gui",color:"white",with:[{translate:"block.databench.databench",color:"#3F3F3F",font:"minecraft:default"}]}} keep
+        scoreboard players add .max databench.ID 1
     }
 }
 
@@ -362,4 +367,16 @@ advancement placed_databench {
     "rewards": {
         "function": "jupdev.databench:placed"
     }
+}
+
+# Databench Predicates
+predicate match_id {
+  "condition": "minecraft:entity_scores", 
+  "entity": "this", 
+  "scores": {
+    "databench.ID": {
+      "min": { "type": "minecraft:score", "target": { "type": "minecraft:fixed", "name": "#this" }, "score": "databench.ID" },
+      "max": { "type": "minecraft:score", "target": { "type": "minecraft:fixed", "name": "#this" }, "score": "databench.ID" }
+    }
+  }
 }
