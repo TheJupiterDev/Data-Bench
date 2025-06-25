@@ -78,7 +78,7 @@ function databench {
     function increment
 
     # Check Recipes
-    # function example_craft.input
+    function jupdev.databench:recipes/example_craft
 
     execute if score @s databench.success matches 0 run function clear_slots
 }
@@ -138,7 +138,7 @@ function check_hopper {
 
 function replace_hopper {
     title @p actionbar {text:"You cannot place hoppers here!",color:"red"}
-    setblock ~ ~ ~ air destroy
+    $setblock $(x) $(y) $(z) air destroy
 }
 
 function cleanup {
@@ -183,6 +183,17 @@ function placed {
         setblock ~ ~ ~ barrel[facing=up]{CustomName:{translate:"block.databench.databench.gui",font:"databench:gui",color:"white",with:[{translate:"block.databench.databench",color:"#3F3F3F",font:"minecraft:default"}]}} keep
         scoreboard players add .max databench.ID 1
     }
+}
+
+dir recipes {
+  function example_craft {
+    execute if score @s databench.items matches 1 if data block ~ ~ ~ Items[{id:"minecraft:stone"}] run block {
+      scoreboard players set @s databench.success 1
+      execute unless block ~ ~ ~ barrel{Items:[{Slot:16b,id:"minecraft:diamond",count:4,components:{"minecraft:custom_data":{databench.output_item:1b}}}]} run scoreboard players add @s databench.craft 1
+      execute unless score @s databench.craft matches 2 run data modify block ~ ~ ~ Items append value {Slot:16b,id:"minecraft:diamond",count:4,components:{"minecraft:custom_data":{databench.output_item:1b}}}
+      execute if score @s databench.craft matches 2 run function *clear
+    }
+  }
 }
 
 ##############
