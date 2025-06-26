@@ -16,6 +16,20 @@ function init minecraft:load{
 
 function main minecraft:tick{
     execute as @e[tag=databench.marker,type=marker] at @s run function databench
+
+    # Replace Paintings with Databenches
+    execute as @a if items entity @s container.* *[minecraft:painting/variant="jupdev.databench:databench"] run block {
+      execute if items entity @s player.cursor *[minecraft:painting/variant="jupdev.databench:databench"] run block {
+        item modify entity @s player.cursor jupdev.databench:set_comp
+        item modify entity @s player.cursor jupdev.databench:clear_painting
+      }
+      REPEAT (0, 35) as i {
+            execute if items entity @s container.<%i%> *[minecraft:painting/variant="jupdev.databench:databench"] run block {
+              item modify entity @s container.<%i%> jupdev.databench:set_comp
+              item modify entity @s container.<%i%> jupdev.databench:clear_painting
+          }
+        }
+    }
 }
 
 ##############
@@ -68,6 +82,7 @@ function databench {
     execute as @s run function check_hopper
 
     scoreboard players operation #this databench.ID = @s databench.ID
+
     # Handle Lighting
     execute at @s as @e[predicate=jupdev.databench:match_id,type=item_display] run function handle_lighting
 
@@ -285,6 +300,69 @@ item_modifier clear_comp {
     "conditions": []
 }
 
+item_modifier clear_painting {
+  "function": "minecraft:set_item",
+  "item": "minecraft:bat_spawn_egg",
+  "conditions": []
+}
+
+item_modifier set_comp {
+  "function": "minecraft:set_components",
+  "components": {
+    "!painting/variant": {},
+                "minecraft:item_name": {
+                  "italic": false,
+                  "text": "Databench"
+                },
+                "minecraft:item_model": "databench:databench",
+                "minecraft:entity_data": {
+                  "id": "minecraft:item_display",
+                  "Rotation": [
+                    -180,
+                    0
+                  ],
+                  "Tags": [
+                    "databench.databench",
+                    "databench.databenchblock",
+                    "databench.block"
+                  ],
+                  "interpolation_duration":0,"teleport_duration":0,
+                  "transformation": {
+                    "left_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "right_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "translation": [
+                      0,
+                      0.5,
+                      0
+                    ],
+                    "scale": [
+                      1.001,
+                      1.001,
+                      1.001
+                    ]
+                  },
+                  "item": {
+                    "id": "minecraft:flint",
+                    "count": 1,
+                    "components": {
+                      "minecraft:item_model": "databench:databench"
+                    }
+                  }
+                }
+              },
+    "conditions": []
+}
+
 # Databench Recipes
 recipe databench {
     "type": "minecraft:crafting_shaped",
@@ -300,59 +378,56 @@ recipe databench {
     "result": {
     "id": "minecraft:bat_spawn_egg",
     "components": {
-      "minecraft:item_name": {
-        "italic": 0,
-        "text": "CrafterLib Crafter"
-      },
-      "minecraft:item_model": "jupdev.databench:databench",
-      "minecraft:entity_data": {
-        "id": "minecraft:item_display",
-        "Rotation": [
-          -180,
-          0
-        ],
-        "Tags": [
-          "databench.databench",
-          "databench.databenchblock",
-          "databench.block"
-        ],
-        "brightness": {
-          "sky": 15,
-          "block": 0
-        },
-        "transformation": {
-          "left_rotation": [
-            0,
-            0,
-            0,
-            1
-          ],
-          "right_rotation": [
-            0,
-            0,
-            0,
-            1
-          ],
-          "translation": [
-            0,
-            0.5,
-            0
-          ],
-          "scale": [
-            1.001,
-            1.001,
-            1.001
-          ]
-        },
-        "item": {
-          "id": "minecraft:flint",
-          "count": 1,
-          "components": {
-            "minecraft:item_model": "jupdev.databench:databench"
-          }
-        }
-      }
-    }
+                "minecraft:item_name": {
+                  "italic": false,
+                  "text": "Databench"
+                },
+                "minecraft:item_model": "databench:databench",
+                "minecraft:entity_data": {
+                  "id": "minecraft:item_display",
+                  "Rotation": [
+                    -180,
+                    0
+                  ],
+                  "Tags": [
+                    "databench.databench",
+                    "databench.databenchblock",
+                    "databench.block"
+                  ],
+                  "interpolation_duration":0,"teleport_duration":0,
+                  "transformation": {
+                    "left_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "right_rotation": [
+                      0,
+                      0,
+                      0,
+                      1
+                    ],
+                    "translation": [
+                      0,
+                      0.5,
+                      0
+                    ],
+                    "scale": [
+                      1.001,
+                      1.001,
+                      1.001
+                    ]
+                  },
+                  "item": {
+                    "id": "minecraft:flint",
+                    "count": 1,
+                    "components": {
+                      "minecraft:item_model": "databench:databench"
+                    }
+                  }
+                }
+              }
   }
 }
 
