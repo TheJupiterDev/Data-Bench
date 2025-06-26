@@ -1,17 +1,15 @@
 {
-    "asset_id": "donkey_kong",
-    "width": 1,
-    "height": 1,
-    "title": {
-        "translate": "block.databench.painting",
-        "font": "databench:painting",
-        "color": "white",
-        "with": [
-            {
-                "translate": "block.databench.databench",
-                "color": "white",
-                "font": "minecraft:default"
-            }
-        ]
+  "asset_id": "donkey_kong",
+  "width": 1,
+  "height": 1,
+  "title": [
+    {
+      "translate": "block.databench.databench",
+      "font": "minecraft:default"
     }
+  ],
+  "author": {
+    "translate": "block.databench.painting",
+    "font": "databench:databench"
+  }
 }
